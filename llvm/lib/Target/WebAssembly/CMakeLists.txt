@@ -23,6 +23,7 @@ add_llvm_target(WebAssemblyCodeGen
   WebAssemblyDebugFixup.cpp
   WebAssemblyDebugValueManager.cpp
   WebAssemblyLateEHPrepare.cpp
+  WebAssemblyEmitSymbolGraph.cpp
   WebAssemblyExceptionInfo.cpp
   WebAssemblyExplicitLocals.cpp
   WebAssemblyFastISel.cpp
