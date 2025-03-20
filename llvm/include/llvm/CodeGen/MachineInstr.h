@@ -1237,10 +1237,10 @@ public:
   /// bundle remain bundled.
   void eraseFromBundle();
 
-  bool isEHLabel() const { return getOpcode() == TargetOpcode::EH_LABEL; }
-  bool isGCLabel() const { return getOpcode() == TargetOpcode::GC_LABEL; }
+  bool isEHLabel() const { return MCID != nullptr && getOpcode() == TargetOpcode::EH_LABEL; }
+  bool isGCLabel() const { return MCID != nullptr && getOpcode() == TargetOpcode::GC_LABEL; }
   bool isAnnotationLabel() const {
-    return getOpcode() == TargetOpcode::ANNOTATION_LABEL;
+    return MCID != nullptr && getOpcode() == TargetOpcode::ANNOTATION_LABEL;
   }
 
   /// Returns true if the MachineInstr represents a label.
@@ -1249,29 +1249,29 @@ public:
   }
 
   bool isCFIInstruction() const {
-    return getOpcode() == TargetOpcode::CFI_INSTRUCTION;
+    return MCID != nullptr && getOpcode() == TargetOpcode::CFI_INSTRUCTION;
   }
 
   bool isPseudoProbe() const {
-    return getOpcode() == TargetOpcode::PSEUDO_PROBE;
+    return MCID != nullptr && getOpcode() == TargetOpcode::PSEUDO_PROBE;
   }
 
   // True if the instruction represents a position in the function.
   bool isPosition() const { return isLabel() || isCFIInstruction(); }
 
   bool isNonListDebugValue() const {
-    return getOpcode() == TargetOpcode::DBG_VALUE;
+    return MCID != nullptr && getOpcode() == TargetOpcode::DBG_VALUE;
   }
   bool isDebugValueList() const {
-    return getOpcode() == TargetOpcode::DBG_VALUE_LIST;
+    return MCID != nullptr && getOpcode() == TargetOpcode::DBG_VALUE_LIST;
   }
   bool isDebugValue() const {
     return isNonListDebugValue() || isDebugValueList();
   }
-  bool isDebugLabel() const { return getOpcode() == TargetOpcode::DBG_LABEL; }
-  bool isDebugRef() const { return getOpcode() == TargetOpcode::DBG_INSTR_REF; }
+  bool isDebugLabel() const { return MCID != nullptr && getOpcode() == TargetOpcode::DBG_LABEL; }
+  bool isDebugRef() const { return MCID != nullptr && getOpcode() == TargetOpcode::DBG_INSTR_REF; }
   bool isDebugValueLike() const { return isDebugValue() || isDebugRef(); }
-  bool isDebugPHI() const { return getOpcode() == TargetOpcode::DBG_PHI; }
+  bool isDebugPHI() const { return MCID != nullptr && getOpcode() == TargetOpcode::DBG_PHI; }
   bool isDebugInstr() const {
     return isDebugValue() || isDebugLabel() || isDebugRef() || isDebugPHI();
   }
@@ -1306,14 +1306,14 @@ public:
   }
 
   bool isPHI() const {
-    return getOpcode() == TargetOpcode::PHI ||
-           getOpcode() == TargetOpcode::G_PHI;
+    return MCID != nullptr && (getOpcode() == TargetOpcode::PHI ||
+           getOpcode() == TargetOpcode::G_PHI);
   }
-  bool isKill() const { return getOpcode() == TargetOpcode::KILL; }
-  bool isImplicitDef() const { return getOpcode()==TargetOpcode::IMPLICIT_DEF; }
+  bool isKill() const { return MCID != nullptr && getOpcode() == TargetOpcode::KILL; }
+  bool isImplicitDef() const { return MCID != nullptr && getOpcode()==TargetOpcode::IMPLICIT_DEF; }
   bool isInlineAsm() const {
-    return getOpcode() == TargetOpcode::INLINEASM ||
-           getOpcode() == TargetOpcode::INLINEASM_BR;
+    return MCID != nullptr && (getOpcode() == TargetOpcode::INLINEASM ||
+           getOpcode() == TargetOpcode::INLINEASM_BR);
   }
 
   /// FIXME: Seems like a layering violation that the AsmDialect, which is X86
@@ -1326,23 +1326,23 @@ public:
   InlineAsm::AsmDialect getInlineAsmDialect() const;
 
   bool isInsertSubreg() const {
-    return getOpcode() == TargetOpcode::INSERT_SUBREG;
+    return MCID != nullptr && getOpcode() == TargetOpcode::INSERT_SUBREG;
   }
 
   bool isSubregToReg() const {
-    return getOpcode() == TargetOpcode::SUBREG_TO_REG;
+    return MCID != nullptr && getOpcode() == TargetOpcode::SUBREG_TO_REG;
   }
 
   bool isRegSequence() const {
-    return getOpcode() == TargetOpcode::REG_SEQUENCE;
+    return MCID != nullptr && getOpcode() == TargetOpcode::REG_SEQUENCE;
   }
 
   bool isBundle() const {
-    return getOpcode() == TargetOpcode::BUNDLE;
+    return MCID != nullptr && getOpcode() == TargetOpcode::BUNDLE;
   }
 
   bool isCopy() const {
-    return getOpcode() == TargetOpcode::COPY;
+    return MCID != nullptr && getOpcode() == TargetOpcode::COPY;
   }
 
   bool isFullCopy() const {
@@ -1350,7 +1350,7 @@ public:
   }
 
   bool isExtractSubreg() const {
-    return getOpcode() == TargetOpcode::EXTRACT_SUBREG;
+    return MCID != nullptr && getOpcode() == TargetOpcode::EXTRACT_SUBREG;
   }
 
   /// Return true if the instruction behaves like a copy.
@@ -1369,6 +1369,7 @@ public:
   /// to be eliminated during register allocation (such as copy-like
   /// instructions), or if this instruction doesn't have an execution-time cost.
   bool isTransient() const {
+    if (MCID == nullptr) return false;
     switch (getOpcode()) {
     default:
       return isMetaInstruction();
